@@ -34,3 +34,5 @@ docker-data/
 # Temporary files
 tmp/
 temp/
+
+myReadMe.md
