@@ -1,0 +1,13 @@
+.git
+.gitignore
+README.md
+.env
+.env.example
+.vscode
+.idea
+*.swp
+*.swo
+bin/
+tmp/
+docker-data/
+*.log

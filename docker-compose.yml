@@ -1,0 +1,74 @@
+
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: renew-guard-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: renew_guard
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - renew-guard-network
+
+  # Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: renew-guard-app
+    ports:
+      - "8080:8080"
+    environment:
+      # Server
+      SERVER_PORT: 8080
+      GIN_MODE: release
+      APP_ENV: production
+      
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: renew_guard
+      DB_SSLMODE: disable
+      
+      # JWT
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-this-in-production}
+      JWT_EXPIRATION_HOURS: 72
+      
+      # Email (Update with your SMTP credentials)
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-noreply@renewguard.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-RenewGuard}
+      
+      # Scheduler
+      SCHEDULER_ENABLED: true
+      SCHEDULER_CRON: "0 0 * * *"
+      NOTIFICATION_DAYS_BEFORE: 5
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - renew-guard-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  renew-guard-network:
+    driver: bridge
