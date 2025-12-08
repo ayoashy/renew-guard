@@ -63,10 +63,11 @@ func main() {
 	// Initialize controllers
 	authController := controllers.NewAuthController(authService)
 	subscriptionController := controllers.NewSubscriptionController(subscriptionService)
+	emailTestController := controllers.NewEmailTestController(emailService)
 
 	// Initialize router
 	router := gin.Default()
-	appRouter := routes.NewRouter(authController, subscriptionController, jwtUtil)
+	appRouter := routes.NewRouter(authController, subscriptionController, emailTestController, jwtUtil)
 	appRouter.SetupRoutes(router)
 
 	// Initialize and start scheduler

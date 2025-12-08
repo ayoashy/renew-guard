@@ -12,17 +12,20 @@ import (
 type Router struct {
 	authController         *controllers.AuthController
 	subscriptionController *controllers.SubscriptionController
+	emailTestController    *controllers.EmailTestController
 	jwtUtil                *jwt.JWTUtil
 }
 
 func NewRouter(
 	authController *controllers.AuthController,
 	subscriptionController *controllers.SubscriptionController,
+	emailTestController *controllers.EmailTestController,
 	jwtUtil *jwt.JWTUtil,
 ) *Router {
 	return &Router{
 		authController:         authController,
 		subscriptionController: subscriptionController,
+		emailTestController:    emailTestController,
 		jwtUtil:                jwtUtil,
 	}
 }
@@ -42,7 +45,7 @@ func (r *Router) SetupRoutes(router *gin.Engine) {
 	})
 
 	// API v1 routes
-	api := router.Group("/api")
+	api := router.Group("/api/v1")
 	{
 		// Auth routes (public)
 		auth := api.Group("/auth")
@@ -61,6 +64,12 @@ func (r *Router) SetupRoutes(router *gin.Engine) {
 			subscriptions.PUT("/:id", r.subscriptionController.UpdateSubscription)
 			subscriptions.DELETE("/:id", r.subscriptionController.DeleteSubscription)
 			subscriptions.PATCH("/:id/notifications", r.subscriptionController.ToggleNotification)
+		}
+
+		// Email test routes (public - for testing SMTP)
+		test := api.Group("/test")
+		{
+			test.POST("/email", r.emailTestController.SendTestEmail)
 		}
 	}
 }
