@@ -69,8 +69,8 @@ func (s *notificationService) SendExpirationWarning(subscription *models.Subscri
 	subject := email.GetExpirationWarningSubject(subscription.Name, daysLeft)
 	htmlBody := email.GetExpirationWarningTemplate(subscription.Name, daysLeft, subscription.EndDate)
 
-	// Send email
-	err := s.emailService.SendHTML(subscription.User.Email, subject, htmlBody)
+	// Send email using the email stored with the subscription
+	err := s.emailService.SendHTML(subscription.Email, subject, htmlBody)
 
 	// Create notification log
 	notificationLog := &models.NotificationLog{
@@ -87,7 +87,7 @@ func (s *notificationService) SendExpirationWarning(subscription *models.Subscri
 			log.Printf("Failed to create notification log: %v", logErr)
 		}
 		
-		return fmt.Errorf("failed to send email to %s: %w", subscription.User.Email, err)
+		return fmt.Errorf("failed to send email to %s: %w", subscription.Email, err)
 	}
 
 	// Update last notification sent timestamp
@@ -102,7 +102,7 @@ func (s *notificationService) SendExpirationWarning(subscription *models.Subscri
 	}
 
 	log.Printf("Notification sent successfully for subscription %d (%s) to %s", 
-		subscription.ID, subscription.Name, subscription.User.Email)
+		subscription.ID, subscription.Name, subscription.Email)
 
 	return nil
 }

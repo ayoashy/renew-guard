@@ -16,7 +16,7 @@ var (
 )
 
 type SubscriptionService interface {
-	Create(userID uint, name string, startDate time.Time, durationDays int) (*models.Subscription, error)
+	Create(userID uint, email string, name string, startDate time.Time, durationDays int) (*models.Subscription, error)
 	GetByID(id, userID uint) (*models.Subscription, error)
 	GetAllByUserID(userID uint) ([]models.Subscription, error)
 	Update(id, userID uint, name string, startDate time.Time, durationDays int, notificationEnabled bool) (*models.Subscription, error)
@@ -34,7 +34,7 @@ func NewSubscriptionService(subscriptionRepo repositories.SubscriptionRepository
 	}
 }
 
-func (s *subscriptionService) Create(userID uint, name string, startDate time.Time, durationDays int) (*models.Subscription, error) {
+func (s *subscriptionService) Create(userID uint, email string, name string, startDate time.Time, durationDays int) (*models.Subscription, error) {
 	// Validate input
 	if name == "" || durationDays <= 0 {
 		return nil, ErrInvalidSubscriptionData
@@ -42,6 +42,7 @@ func (s *subscriptionService) Create(userID uint, name string, startDate time.Ti
 
 	subscription := &models.Subscription{
 		UserID:              userID,
+		Email:               email,
 		Name:                name,
 		StartDate:           startDate,
 		DurationDays:        durationDays,

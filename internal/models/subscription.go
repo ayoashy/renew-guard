@@ -9,6 +9,7 @@ import (
 type Subscription struct {
 	ID                   uint       `gorm:"primaryKey" json:"id"`
 	UserID               uint       `gorm:"not null;index" json:"user_id"`
+	Email                string     `gorm:"default:''" json:"email"` // User's email at subscription creation
 	Name                 string     `gorm:"not null" json:"name"`
 	StartDate            time.Time  `gorm:"not null" json:"start_date"`
 	DurationDays         int        `gorm:"not null" json:"duration_days"`

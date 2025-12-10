@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"renew-guard/internal/middleware"
 	"renew-guard/internal/services"
+	"renew-guard/pkg/email"
 	"renew-guard/pkg/utils"
 	"strconv"
 	"time"
@@ -13,11 +14,13 @@ import (
 
 type SubscriptionController struct {
 	subscriptionService services.SubscriptionService
+	emailService        email.EmailService
 }
 
-func NewSubscriptionController(subscriptionService services.SubscriptionService) *SubscriptionController {
+func NewSubscriptionController(subscriptionService services.SubscriptionService, emailService email.EmailService) *SubscriptionController {
 	return &SubscriptionController{
 		subscriptionService: subscriptionService,
+		emailService:        emailService,
 	}
 }
 
@@ -54,13 +57,21 @@ func (ctrl *SubscriptionController) CreateSubscription(c *gin.Context) {
 		return
 	}
 
+	// Get user email from context
+	userEmail, exists := middleware.GetUserEmail(c)
+	if !exists {
+		utils.ErrorResponse(c, http.StatusUnauthorized, "User email not found")
+		return
+	}
+
 	var req CreateSubscriptionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	subscription, err := ctrl.subscriptionService.Create(userID, req.Name, req.StartDate, req.DurationDays)
+	// Create subscription with user's email
+	subscription, err := ctrl.subscriptionService.Create(userID, userEmail, req.Name, req.StartDate, req.DurationDays)
 	if err != nil {
 		if err == services.ErrInvalidSubscriptionData {
 			utils.ErrorResponse(c, http.StatusBadRequest, "Invalid subscription data")
@@ -69,6 +80,9 @@ func (ctrl *SubscriptionController) CreateSubscription(c *gin.Context) {
 		}
 		return
 	}
+
+	// Send confirmation email asynchronously
+	go ctrl.sendSubscriptionConfirmation(userEmail, subscription.Name, subscription.StartDate, subscription.EndDate)
 
 	utils.SuccessResponse(c, http.StatusCreated, "Subscription created successfully", subscription)
 }

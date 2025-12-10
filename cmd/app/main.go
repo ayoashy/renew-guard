@@ -62,7 +62,7 @@ func main() {
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authService)
-	subscriptionController := controllers.NewSubscriptionController(subscriptionService)
+	subscriptionController := controllers.NewSubscriptionController(subscriptionService, emailService)
 	emailTestController := controllers.NewEmailTestController(emailService)
 
 	// Initialize router
